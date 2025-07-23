@@ -1,7 +1,6 @@
-@@ .. @@
-       const prediction = await detectPoseAndMeasure(
--        selectedImage,
-         ageMonths,
-         selectedBaby.gender,
-         data.scale_cm_per_px
-       );
+try {
+        setIsProcessing(true);
+        const result = await detectPoseAndMeasure(
+          ageMonths,
+          baby.gender as 'male' | 'female'
+        );
