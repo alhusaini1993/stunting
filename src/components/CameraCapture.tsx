@@ -1,7 +1,6 @@
 const capturePhoto = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
 
-    setIsCapturing(true);
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
@@ -19,6 +18,5 @@ const capturePhoto = useCallback(() => {
         stopCamera();
         onClose();
       }
-      setIsCapturing(false);
     }, 'image/jpeg', 0.9);
   }, [onImageCapture, onClose, stopCamera]);
