@@ -348,41 +348,53 @@ except RuntimeError as e:
     st.error(str(e))
     st.stop()
 
-# Display primary results --------------------------------------------------
+# Display results & evaluation in tabs ------------------------------------
 
-c1,c2,c3=st.columns(3)
-with c1: st.metric("Height (cm)",f"{res['height_cm']:.1f}")
-with c2: st.metric("Weight (kg)",f"{res['weight_kg']:.1f}")
-with c3:
-    st.markdown(f"<span style='padding:4px 8px;border-radius:6px;background:{res['haz_color']};color:#fff'>HAZ {res['haz']:.2f} – {res['haz_cat']}</span>",unsafe_allow_html=True)
+tab_res, tab_eval = st.tabs(["📊 Results", "📈 Evaluation"])
 
-st.image(img,caption="Input",use_column_width=True)
+with tab_res:
+    c1,c2,c3=st.columns(3)
+    with c1:
+        st.metric("Height (cm)", f"{res['height_cm']:.1f}")
+    with c2:
+        st.metric("Weight (kg)", f"{res['weight_kg']:.1f}")
+    with c3:
+        st.markdown(
+            f"<span style='padding:4px 8px;border-radius:6px;background:{res['haz_color']};color:#fff'>HAZ {res['haz']:.2f} – {res['haz_cat']}</span>",
+            unsafe_allow_html=True,
+        )
 
-if debug:
-    st.expander("Debug JSON").json(res)
+    st.image(img, caption="Input", use_column_width=True)
 
-# ─ Evaluation panel ─────────────────────────────────────────────────────
+    if debug:
+        st.expander("Debug JSON").json(res)
 
-if compare_toggle:
-    st.subheader("📈 Evaluation vs Ground Truth")
-    if eval_mode=="Use Risfendra dataset":
-        ds=RISFENDRA_DATA[selected_ds]
-        gt=ds["gt"]
-        pred=ds["pred"]
-        # Append current sample to list for broader comparison
-        gt_all=gt+[gt[0]]  # dummy – we don't know current GT
-        pred_all=pred+[res['height_cm']]
-        m=compute_metrics(gt_all,pred_all)
-        st.markdown(f"**Dataset:** {selected_ds} + *current sample (no GT)*")
+with tab_eval:
+    if not compare_toggle:
+        st.info("Enable comparison in the sidebar to compute metrics.")
     else:
-        gt=[manual_gt_height]
-        pred=[res['height_cm']]
-        m=compute_metrics(gt,pred)
-    st.table(metrics_df(m))
-    if eval_mode=="Use Risfendra dataset":
-        # Show side‑by‑side dataframe
-        df=pd.DataFrame({"GT (cm)":gt_all,"Pred (cm)":pred_all})
-    else:
-        df=pd.DataFrame({"GT (cm)":gt,"Pred (cm)":pred})
-    st.dataframe(df,use_container_width=True)
-    st.markdown(get_table_download_link(df,filename="pred_vs_gt.csv"),unsafe_allow_html=True)
+        if eval_mode == "Use Risfendra dataset":
+            ds = RISFENDRA_DATA[selected_ds]
+            gt = ds["gt"]
+            pred = ds["pred"]
+            gt_all = gt + [gt[0]]  # dummy – we don't know current GT
+            pred_all = pred + [res['height_cm']]
+            m = compute_metrics(gt_all, pred_all)
+            st.markdown(f"**Dataset:** {selected_ds} + *current sample (no GT)*")
+        else:
+            gt = [manual_gt_height]
+            pred = [res['height_cm']]
+            m = compute_metrics(gt, pred)
+
+        st.table(metrics_df(m))
+
+        if eval_mode == "Use Risfendra dataset":
+            df = pd.DataFrame({"GT (cm)": gt_all, "Pred (cm)": pred_all})
+        else:
+            df = pd.DataFrame({"GT (cm)": gt, "Pred (cm)": pred})
+
+        st.dataframe(df, use_container_width=True)
+        st.markdown(
+            get_table_download_link(df, filename="pred_vs_gt.csv"),
+            unsafe_allow_html=True,
+        )
